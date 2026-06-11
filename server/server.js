@@ -15,15 +15,27 @@ app.get("/", (req, res) => {
 
 app.get("/opportunities", (req, res) => {
 
-    const sql = "SELECT * FROM opportunities";
+    const category = req.query.category;
+    const sort = req.query.sort;
 
-    db.query(sql, (err, result) => {
+    let sql = "SELECT * FROM opportunities";
+    let values = [];
+
+    if (category) {
+        sql += " WHERE category = ?";
+        values.push(category);
+    }
+
+    if (sort === "deadline") {
+        sql += " ORDER BY deadline ASC";
+    }
+
+    db.query(sql, values, (err, result) => {
 
         if (err) {
-            res.status(500).json({
+            return res.status(500).json({
                 error: err
             });
-            return;
         }
 
         res.json(result);
@@ -31,7 +43,6 @@ app.get("/opportunities", (req, res) => {
     });
 
 });
-
 
 app.get("/opportunities/:id", (req, res) => {
 
