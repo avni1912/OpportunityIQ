@@ -119,6 +119,59 @@ app.post("/save", (req, res) => {
 
 });
 
+app.get("/saved", (req, res) => {
+
+    const user_id = 1;
+
+    const sql = `
+        SELECT opportunities.*
+        FROM saved_opportunities
+        JOIN opportunities
+        ON saved_opportunities.opportunity_id = opportunities.id
+        WHERE saved_opportunities.user_id = ?
+    `;
+
+    db.query(sql, [user_id], (err, result) => {
+
+        if (err) {
+            console.log(err);
+
+            return res.status(500).json({
+                error: err
+            });
+        }
+
+        res.json(result);
+
+    });
+
+});
+
+app.delete("/saved/:id", (req, res) => {
+
+    const opportunity_id = req.params.id;
+    const user_id = 1;
+
+    const sql =
+        "DELETE FROM saved_opportunities WHERE user_id = ? AND opportunity_id = ?";
+
+    db.query(sql, [user_id, opportunity_id], (err, result) => {
+
+        if (err) {
+            console.log(err);
+
+            return res.status(500).json({
+                error: err
+            });
+        }
+
+        res.json({
+            message: "Removed successfully!"
+        });
+
+    });
+
+});
 
 app.listen(5000, () => {
     console.log("Server running on port 5000");
