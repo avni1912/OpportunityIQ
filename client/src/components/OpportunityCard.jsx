@@ -1,6 +1,9 @@
+import { Link } from "react-router-dom";
 function OpportunityCard({ opportunity }) {
   return (
-    <div className="bg-white rounded-xl shadow-md p-5">
+  <Link to={`/opportunity/${opportunity.id}`}>
+    <div className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition duration-300 cursor-pointer">
+
       <h2 className="text-xl font-bold">
         {opportunity.title}
       </h2>
@@ -16,8 +19,10 @@ function OpportunityCard({ opportunity }) {
       <p className="mt-3 text-sm">
         Deadline: {opportunity.deadline?.split("T")[0]}
       </p>
+
     </div>
-  );
+  </Link>
+);
 }
 
 export default OpportunityCard;

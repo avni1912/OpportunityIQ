@@ -59,7 +59,7 @@ app.get("/opportunities/:id", (req, res) => {
             return;
         }
 
-        res.json(result);
+        res.json(result[0]);
 
     });
 
