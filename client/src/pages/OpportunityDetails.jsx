@@ -40,6 +40,21 @@ function OpportunityDetails() {
         color: "bg-green-500"
     };
 };
+
+const saveOpportunity = () => {
+
+    axios.post("http://localhost:5000/save", {
+        opportunity_id: opportunity.id
+    })
+    .then((res) => {
+        alert(res.data.message);
+    })
+    .catch((err) => {
+        console.log(err);
+    });
+
+};
+
   const [opportunity, setOpportunity] = useState(null);
 
   useEffect(() => {
@@ -140,14 +155,25 @@ function OpportunityDetails() {
 
       </div>
 
-      <a
+      <div className="flex gap-4 mt-8">
+
+    <button
+        onClick={saveOpportunity}
+        className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600"
+    >
+        ❤️ Save
+    </button>
+
+    <a
         href={opportunity.apply_link}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block mt-8 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-      >
+        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 rounded-lg"
+    >
         Apply Now
-      </a>
+    </a>
+
+</div>
 
     </div>
 

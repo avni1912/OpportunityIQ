@@ -94,6 +94,31 @@ app.get("/search", (req, res) => {
 
 });
 
+app.post("/save", (req, res) => {
+
+    const { opportunity_id } = req.body;
+
+    const user_id = 1;
+
+    const sql =
+        "INSERT INTO saved_opportunities (user_id, opportunity_id) VALUES (?, ?)";
+
+    db.query(sql, [user_id, opportunity_id], (err, result) => {
+
+        if (err) {
+            return res.status(500).json({
+                error: err
+            });
+        }
+
+        res.json({
+            message: "Opportunity saved successfully!"
+        });
+
+    });
+
+});
+
 
 app.listen(5000, () => {
     console.log("Server running on port 5000");
