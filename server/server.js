@@ -1,11 +1,44 @@
 const express = require("express");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = "opportunityiq_secret_key";
 const db = require("./db/connection");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+const verifyToken = (req, res, next) => {
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        return res.status(401).json({
+            message: "Access Denied"
+        });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    try {
+
+        const verified = jwt.verify(token, JWT_SECRET);
+
+        req.user = verified;
+
+        next();
+
+    } catch (err) {
+
+        return res.status(401).json({
+            message: "Invalid Token"
+        });
+
+    }
+
+};
 
 
 app.get("/", (req, res) => {
@@ -94,11 +127,11 @@ app.get("/search", (req, res) => {
 
 });
 
-app.post("/save", (req, res) => {
+app.post("/save", verifyToken, (req, res) => {
 
     const { opportunity_id } = req.body;
 
-    const user_id = 1;
+    const user_id = req.user.id;
 
     const sql =
         "INSERT INTO saved_opportunities (user_id, opportunity_id) VALUES (?, ?)";
@@ -119,9 +152,9 @@ app.post("/save", (req, res) => {
 
 });
 
-app.get("/saved", (req, res) => {
+app.get("/saved", verifyToken, (req, res) => {
 
-    const user_id = 1;
+    const user_id = req.user.id;
 
     const sql = `
         SELECT opportunities.*
@@ -167,6 +200,102 @@ app.delete("/saved/:id", (req, res) => {
 
         res.json({
             message: "Removed successfully!"
+        });
+
+    });
+
+});
+
+app.post("/signup", async (req, res) => {
+
+    const { name, email, password, branch, year, skills } = req.body;
+
+    try {
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const sql = `
+            INSERT INTO users
+            (name, email, password, branch, year, skills)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(
+            sql,
+            [name, email, hashedPassword, branch, year, skills],
+            (err, result) => {
+
+                if (err) {
+                    console.log(err);
+
+                    return res.status(500).json({
+                        error: err
+                    });
+                }
+
+                res.json({
+                    message: "User registered successfully!"
+                });
+
+            }
+        );
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            error: error
+        });
+
+    }
+
+});
+
+app.post("/login", (req, res) => {
+
+    const { email, password } = req.body;
+
+    const sql = "SELECT * FROM users WHERE email = ?";
+
+    db.query(sql, [email], async (err, result) => {
+
+        if (err) {
+            return res.status(500).json({
+                error: err
+            });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const user = result[0];
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({
+                message: "Invalid password"
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                id: user.id,
+                email: user.email
+            },
+            JWT_SECRET,
+            {
+                expiresIn: "1d"
+            }
+        );
+
+        res.json({
+            message: "Login successful",
+            token
         });
 
     });
