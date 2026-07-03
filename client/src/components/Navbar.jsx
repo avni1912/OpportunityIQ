@@ -1,33 +1,82 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
-  return (
-    <nav className="bg-white shadow-md px-8 py-4 flex justify-between items-center">
 
-      <h1 className="text-2xl font-bold text-blue-600">
-        OpportunityIQ
-      </h1>
+    const navigate = useNavigate();
 
-      <div className="flex gap-6">
+    const token = localStorage.getItem("token");
 
-        <Link
-          to="/"
-          className="hover:text-blue-600 font-medium"
-        >
-          Home
-        </Link>
+    const handleLogout = () => {
 
-        <Link
-          to="/saved"
-          className="hover:text-blue-600 font-medium"
-        >
-          Saved Opportunities
-        </Link>
+        localStorage.removeItem("token");
 
-      </div>
+        alert("Logged out successfully!");
 
-    </nav>
-  );
+        navigate("/login");
+
+    };
+
+    return (
+
+        <nav className="bg-white shadow-md px-8 py-4 flex justify-between items-center">
+
+            <h1 className="text-2xl font-bold text-blue-600">
+                OpportunityIQ
+            </h1>
+
+            <div className="flex gap-6 items-center">
+
+                <Link
+                    to="/"
+                    className="hover:text-blue-600 font-medium"
+                >
+                    Home
+                </Link>
+
+                {token ? (
+                    <>
+
+                        <Link
+                            to="/saved"
+                            className="hover:text-blue-600 font-medium"
+                        >
+                            Saved Opportunities
+                        </Link>
+
+                        <button
+                            onClick={handleLogout}
+                            className="text-red-600 font-medium hover:text-red-800"
+                        >
+                            Logout
+                        </button>
+
+                    </>
+                ) : (
+                    <>
+
+                        <Link
+                            to="/login"
+                            className="hover:text-blue-600 font-medium"
+                        >
+                            Login
+                        </Link>
+
+                        <Link
+                            to="/signup"
+                            className="hover:text-blue-600 font-medium"
+                        >
+                            Sign Up
+                        </Link>
+
+                    </>
+                )}
+
+            </div>
+
+        </nav>
+
+    );
+
 }
 
 export default Navbar;

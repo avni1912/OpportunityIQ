@@ -43,14 +43,29 @@ function OpportunityDetails() {
 
 const saveOpportunity = () => {
 
-    axios.post("http://localhost:5000/save", {
-        opportunity_id: opportunity.id
-    })
+    const token = localStorage.getItem("token");
+
+    axios.post(
+        "http://localhost:5000/save",
+        {
+            opportunity_id: opportunity.id
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    )
     .then((res) => {
         alert(res.data.message);
     })
     .catch((err) => {
         console.log(err);
+
+        if (err.response?.status === 401) {
+            alert("Please login first!");
+            navigate("/login");
+        }
     });
 
 };

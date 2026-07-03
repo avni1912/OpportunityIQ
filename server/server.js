@@ -130,22 +130,41 @@ app.get("/search", (req, res) => {
 app.post("/save", verifyToken, (req, res) => {
 
     const { opportunity_id } = req.body;
-
     const user_id = req.user.id;
 
-    const sql =
-        "INSERT INTO saved_opportunities (user_id, opportunity_id) VALUES (?, ?)";
+    console.log("User ID:", user_id);
+console.log("Opportunity ID:", opportunity_id);
 
-    db.query(sql, [user_id, opportunity_id], (err, result) => {
+    const checkSql =
+        "SELECT * FROM saved_opportunities WHERE user_id = ? AND opportunity_id = ?";
+
+    db.query(checkSql, [user_id, opportunity_id], (err, result) => {
+
+        console.log("Existing records:", result);
 
         if (err) {
-            return res.status(500).json({
-                error: err
+            return res.status(500).json({ error: err });
+        }
+
+        if (result.length > 0) {
+            return res.json({
+                message: "Opportunity already saved!"
             });
         }
 
-        res.json({
-            message: "Opportunity saved successfully!"
+        const insertSql =
+            "INSERT INTO saved_opportunities (user_id, opportunity_id) VALUES (?, ?)";
+
+        db.query(insertSql, [user_id, opportunity_id], (err) => {
+
+            if (err) {
+                return res.status(500).json({ error: err });
+            }
+
+            res.json({
+                message: "Opportunity saved successfully!"
+            });
+
         });
 
     });
@@ -180,11 +199,10 @@ app.get("/saved", verifyToken, (req, res) => {
 
 });
 
-app.delete("/saved/:id", (req, res) => {
+app.delete("/saved/:id", verifyToken, (req, res) => {
 
     const opportunity_id = req.params.id;
-    const user_id = 1;
-
+    const user_id = req.user.id;
     const sql =
         "DELETE FROM saved_opportunities WHERE user_id = ? AND opportunity_id = ?";
 
@@ -195,6 +213,12 @@ app.delete("/saved/:id", (req, res) => {
 
             return res.status(500).json({
                 error: err
+            });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "Saved opportunity not found."
             });
         }
 

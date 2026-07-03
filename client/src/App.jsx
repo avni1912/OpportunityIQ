@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import OpportunityDetails from "./pages/OpportunityDetails";
 import SavedOpportunities from "./pages/SavedOpportunities";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -14,7 +17,15 @@ function App() {
         />
         <Route
           path="/saved"
-          element={<SavedOpportunities />}
+          element={<ProtectedRoute>
+                    <SavedOpportunities />
+                  </ProtectedRoute>}
+        />
+        <Route
+          path="/login" element={<Login />} 
+        />
+        <Route
+         path="/signup" element={<Signup />}
         />
       </Routes>
     </BrowserRouter>

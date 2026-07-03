@@ -9,29 +9,53 @@ function SavedOpportunities() {
 
     useEffect(() => {
 
-        axios.get("http://localhost:5000/saved")
-            .then((res) => {
-                setSaved(res.data);
-            })
-            .catch((err) => {
-                console.log(err);
-            });
+    const token = localStorage.getItem("token");
 
-    }, []);
+    axios.get(
+        "http://localhost:5000/saved",
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    )
+    .then((res) => {
+        setSaved(res.data);
+    })
+    .catch((err) => {
+        console.log(err);
+    });
+
+}, []);
 
     const removeSaved = (id) => {
 
-    axios.delete(`http://localhost:5000/saved/${id}`)
-        .then((res) => {
+    const token = localStorage.getItem("token");
 
-            alert(res.data.message);
+    axios.delete(
+        `http://localhost:5000/saved/${id}`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    )
+    .then((res) => {
 
-            setSaved(saved.filter((item) => item.id !== id));
+        alert(res.data.message);
 
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+        setSaved(saved.filter((item) => item.id !== id));
+
+    })
+    .catch((err) => {
+
+        console.log(err);
+
+        if (err.response?.status === 401) {
+            alert("Please login first!");
+        }
+
+    });
 
 };
 
