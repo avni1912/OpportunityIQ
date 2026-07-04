@@ -35,8 +35,9 @@ function Login() {
             })
             .catch((err) => {
 
-                console.log(err);
-                alert("Invalid Email or Password");
+                console.log(err.response);
+
+                alert(err.response.data.message);
 
             });
 

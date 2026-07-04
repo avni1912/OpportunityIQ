@@ -5,6 +5,7 @@ import SavedOpportunities from "./pages/SavedOpportunities";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
         <Route
          path="/signup" element={<Signup />}
         />
+        <Route 
+          path="/admin" element={<Admin />}
+        />  
       </Routes>
     </BrowserRouter>
   );

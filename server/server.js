@@ -127,13 +127,25 @@ app.get("/search", (req, res) => {
 
 });
 
+function verifyAdmin(req, res, next) {
+
+    if (req.user.role !== "admin") {
+        return res.status(403).json({
+            message: "Admin access only"
+        });
+    }
+
+    next();
+
+}
+
 app.post("/save", verifyToken, (req, res) => {
 
     const { opportunity_id } = req.body;
     const user_id = req.user.id;
 
     console.log("User ID:", user_id);
-console.log("Opportunity ID:", opportunity_id);
+    console.log("Opportunity ID:", opportunity_id);
 
     const checkSql =
         "SELECT * FROM saved_opportunities WHERE user_id = ? AND opportunity_id = ?";
@@ -308,18 +320,89 @@ app.post("/login", (req, res) => {
 
         const token = jwt.sign(
             {
+
                 id: user.id,
-                email: user.email
+                email: user.email,
+                role: user.role
             },
             JWT_SECRET,
             {
-                expiresIn: "1d"
+                expiresIn: "1h"
             }
         );
 
         res.json({
             message: "Login successful",
             token
+        });
+
+    });
+
+});
+
+app.post("/opportunities", verifyToken, verifyAdmin, (req, res) => {
+
+    const {
+        title,
+        organization,
+        category,
+        description,
+        deadline,
+        skills_required,
+        eligible_years,
+        eligible_branches,
+        apply_link
+    } = req.body;
+
+    const sql = `
+        INSERT INTO opportunities
+        (title, organization, category, description, deadline,
+        skills_required, eligible_years, eligible_branches, apply_link)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            title,
+            organization,
+            category,
+            description,
+            deadline,
+            skills_required,
+            eligible_years,
+            eligible_branches,
+            apply_link
+        ],
+        (err, result) => {
+
+            if (err) {
+                return res.status(500).json(err);
+            }
+
+            res.json({
+                message: "Opportunity added successfully!"
+            });
+
+        }
+    );
+
+});
+
+app.delete("/opportunities/:id", verifyToken, verifyAdmin, (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = "DELETE FROM opportunities WHERE id = ?";
+
+    db.query(sql, [id], (err, result) => {
+
+        if (err) {
+            return res.status(500).json(err);
+        }
+
+        res.json({
+            message: "Opportunity deleted successfully!"
         });
 
     });
