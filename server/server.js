@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = "opportunityiq_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET;
 const db = require("./db/connection");
 
 const app = express();
@@ -45,22 +46,36 @@ app.get("/", (req, res) => {
     res.send("OpportunityIQ Backend Running");
 });
 
-
 app.get("/opportunities", (req, res) => {
 
-    const category = req.query.category;
-    const sort = req.query.sort;
+    const search = req.query.search || "";
+    const category = req.query.category || "";
 
-    let sql = "SELECT * FROM opportunities";
-    let values = [];
+    let sql = "SELECT * FROM opportunities WHERE 1=1";
+    const values = [];
 
-    if (category) {
-        sql += " WHERE category = ?";
-        values.push(category);
+    if (search) {
+
+        sql += `
+            AND (
+                title LIKE ?
+                OR organization LIKE ?
+                OR category LIKE ?
+            )
+        `;
+
+        const searchValue = `%${search}%`;
+
+        values.push(searchValue, searchValue, searchValue);
+
     }
 
-    if (sort === "deadline") {
-        sql += " ORDER BY deadline ASC";
+    if (category) {
+
+        sql += " AND category = ?";
+
+        values.push(category);
+
     }
 
     db.query(sql, values, (err, result) => {
@@ -69,56 +84,6 @@ app.get("/opportunities", (req, res) => {
             return res.status(500).json({
                 error: err
             });
-        }
-
-        res.json(result);
-
-    });
-
-});
-
-app.get("/opportunities/:id", (req, res) => {
-
-    const id = req.params.id;
-
-    const sql = "SELECT * FROM opportunities WHERE id = ?";
-
-    db.query(sql, [id], (err, result) => {
-
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-            return;
-        }
-
-        res.json(result[0]);
-
-    });
-
-});
-
-
-app.get("/search", (req, res) => {
-
-    const search = req.query.q;
-
-    const sql = `
-        SELECT * FROM opportunities
-        WHERE title LIKE ?
-        OR organization LIKE ?
-        OR skills_required LIKE ?
-    `;
-
-    const value = `%${search}%`;
-
-    db.query(sql, [value, value, value], (err, result) => {
-
-        if (err) {
-            res.status(500).json({
-                error: err
-            });
-            return;
         }
 
         res.json(result);
@@ -333,7 +298,8 @@ app.post("/login", (req, res) => {
 
         res.json({
             message: "Login successful",
-            token
+            token,
+            role: user.role
         });
 
     });
@@ -409,6 +375,66 @@ app.delete("/opportunities/:id", verifyToken, verifyAdmin, (req, res) => {
 
 });
 
-app.listen(5000, () => {
+app.put("/opportunities/:id", verifyToken, verifyAdmin, (req, res) => {
+
+    const id = req.params.id;
+
+    const {
+        title,
+        organization,
+        category,
+        description,
+        deadline,
+        skills_required,
+        eligible_years,
+        eligible_branches,
+        apply_link
+    } = req.body;
+
+    const sql = `
+        UPDATE opportunities
+        SET
+        title=?,
+        organization=?,
+        category=?,
+        description=?,
+        deadline=?,
+        skills_required=?,
+        eligible_years=?,
+        eligible_branches=?,
+        apply_link=?
+        WHERE id=?
+    `;
+
+    db.query(
+        sql,
+        [
+            title,
+            organization,
+            category,
+            description,
+            deadline,
+            skills_required,
+            eligible_years,
+            eligible_branches,
+            apply_link,
+            id
+        ],
+        (err) => {
+
+            if (err) {
+                return res.status(500).json(err);
+            }
+
+            res.json({
+                message: "Opportunity updated successfully!"
+            });
+
+        }
+    );
+
+});
+
+app.listen(process.env.PORT, () => {
     console.log("Server running on port 5000");
 });

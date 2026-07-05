@@ -29,7 +29,10 @@ function App() {
          path="/signup" element={<Signup />}
         />
         <Route 
-          path="/admin" element={<Admin />}
+          path="/admin" element={
+          <ProtectedRoute adminOnly={true}>
+            <Admin /> 
+          </ProtectedRoute>}
         />  
       </Routes>
     </BrowserRouter>

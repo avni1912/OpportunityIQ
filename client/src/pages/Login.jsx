@@ -28,6 +28,7 @@ function Login() {
             .then((res) => {
 
                 localStorage.setItem("token", res.data.token);
+                localStorage.setItem("role", res.data.role);
 
                 alert("Login Successful!");
                 navigate("/");
@@ -35,9 +36,12 @@ function Login() {
             })
             .catch((err) => {
 
-                console.log(err.response);
+                console.log(err);
 
-                alert(err.response.data.message);
+                alert(
+                    err.response?.data?.message ||
+                    "Something went wrong. Please try again."
+                );
 
             });
 

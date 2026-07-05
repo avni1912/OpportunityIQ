@@ -10,30 +10,26 @@ function Home() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
 
-  useEffect(() => {
+useEffect(() => {
 
-  let url = "http://localhost:5000/opportunities";
+    const params = new URLSearchParams();
 
+    if (search) {
+        params.append("search", search);
+    }
 
-  if (search) {
-    url = `http://localhost:5000/search?q=${search}`;
-  }
+    if (category) {
+        params.append("category", category);
+    }
 
-
-  if (category) {
-    url = `http://localhost:5000/opportunities?category=${category}`;
-  }
-
-
-  axios
-    .get(url)
-    .then((response) => {
-      setOpportunities(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-
+    axios
+        .get(`http://localhost:5000/opportunities?${params.toString()}`)
+        .then((response) => {
+            setOpportunities(response.data);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
 
 }, [search, category]);
 

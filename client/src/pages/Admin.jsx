@@ -17,6 +17,7 @@ function Admin() {
     });
 
     const [opportunities, setOpportunities] = useState([]);
+    const [editingId, setEditingId] = useState(null);
 
     const handleChange = (e) => {
         setFormData({
@@ -25,30 +26,72 @@ function Admin() {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
 
-        e.preventDefault();
-        console.log("Submit clicked");
+    e.preventDefault();
 
-        const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-        axios.post(
-            "http://localhost:5000/opportunities",
-            formData,
-            {
+    const url = editingId
+        ? `http://localhost:5000/opportunities/${editingId}`
+        : "http://localhost:5000/opportunities";
+
+    try {
+
+        if (editingId) {
+
+            await axios.put(url, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
-            }
-        )
-        .then((res) => {
-            alert(res.data.message);
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+            });
 
-    };
+            alert("Opportunity updated successfully!");
+
+        } else {
+
+            await axios.post(url, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            alert("Opportunity added successfully!");
+
+        }
+
+        setEditingId(null);
+        console.log("editingId reset");
+
+        setFormData({
+            title: "",
+            organization: "",
+            category: "",
+            description: "",
+            deadline: "",
+            skills_required: "",
+            eligible_years: "",
+            eligible_branches: "",
+            apply_link: ""
+        });
+        console.log("Form reset");
+
+        const res = await axios.get("http://localhost:5000/opportunities");
+
+        setOpportunities(res.data);
+        console.log("Updated opportunities", res.data);
+
+    } catch (err) {
+
+        console.log(err);
+        alert(
+            err.response?.data?.message ||
+            "Something went wrong."
+        );
+
+    }
+
+};
 
     const deleteOpportunity = (id) => {
 
@@ -73,6 +116,24 @@ function Admin() {
     })
     .catch((err) => {
         console.log(err);
+    });
+
+};
+
+const editOpportunity = (item) => {
+
+    setEditingId(item.id);
+
+    setFormData({
+        title: item.title,
+        organization: item.organization,
+        category: item.category,
+        description: item.description,
+        deadline: item.deadline?.split("T")[0] || "",
+        skills_required: item.skills_required,
+        eligible_years: item.eligible_years,
+        eligible_branches: item.eligible_branches,
+        apply_link: item.apply_link
     });
 
 };
@@ -103,29 +164,29 @@ function Admin() {
                     className="bg-white p-6 rounded-lg shadow-lg space-y-4"
                 >
 
-                    <input name="title" placeholder="Title" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="title" value={formData.title} placeholder="Title" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="organization" placeholder="Organization" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="organization" value={formData.organization} placeholder="Organization" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="category" placeholder="Category" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="category" value={formData.category} placeholder="Category" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <textarea name="description" placeholder="Description" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <textarea name="description" value={formData.description}  placeholder="Description" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input type="date" name="deadline" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input type="date" name="deadline" value={formData.deadline} onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="skills_required" placeholder="Skills Required" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="skills_required" value={formData.skills_required} placeholder="Skills Required" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="eligible_years" placeholder="Eligible Years" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="eligible_years" value={formData.eligible_years} placeholder="Eligible Years" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="eligible_branches" placeholder="Eligible Branches" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="eligible_branches" value={formData.eligible_branches} placeholder="Eligible Branches" onChange={handleChange} className="w-full border p-2 rounded"/>
 
-                    <input name="apply_link" placeholder="Apply Link" onChange={handleChange} className="w-full border p-2 rounded"/>
+                    <input name="apply_link" value={formData.apply_link} placeholder="Apply Link" onChange={handleChange} className="w-full border p-2 rounded"/>
 
                     <button
                         type="submit"
                         className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
                     >
-                        Add Opportunity
+                        {editingId ? "Update Opportunity" : "Add Opportunity"}
                     </button>
 
                 </form>
@@ -146,6 +207,13 @@ function Admin() {
                                 <h3 className="font-bold">{item.title}</h3>
                                 <p>{item.organization}</p>
                             </div>
+
+                            <button
+                                onClick={() => editOpportunity(item)}
+                                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-2"
+                            >
+                                Edit
+                            </button>
 
                            <button
                                 onClick={() => deleteOpportunity(item.id)}

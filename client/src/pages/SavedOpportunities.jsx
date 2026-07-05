@@ -52,7 +52,10 @@ function SavedOpportunities() {
         console.log(err);
 
         if (err.response?.status === 401) {
-            alert("Please login first!");
+            alert(
+                err.response?.data?.message ||
+                "Something went wrong."
+            );
         }
 
     });
