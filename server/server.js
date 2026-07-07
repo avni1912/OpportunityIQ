@@ -306,6 +306,34 @@ app.post("/login", (req, res) => {
 
 });
 
+app.put("/users/skills", verifyToken, (req, res) => {
+
+    const { skills } = req.body;
+
+    const sql = `
+        UPDATE users
+        SET skills = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [skills, req.user.id],
+        (err) => {
+
+            if (err) {
+                return res.status(500).json(err);
+            }
+
+            res.json({
+                message: "Skills updated successfully!"
+            });
+
+        }
+    );
+
+});
+
 app.post("/opportunities", verifyToken, verifyAdmin, (req, res) => {
 
     const {
